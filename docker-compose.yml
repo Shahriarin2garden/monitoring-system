@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+
+  prometheus:
+    build: ./prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+
+  grafana:
+    build: ./grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus

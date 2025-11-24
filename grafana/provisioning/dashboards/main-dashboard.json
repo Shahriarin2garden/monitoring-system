@@ -1,0 +1,25 @@
+{
+  "dashboard": {
+    "title": "Monitoring System",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Active Users",
+        "targets": [
+          {
+            "expr": "app_active_users"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Requests Total",
+        "targets": [
+          {
+            "expr": "app_requests_total"
+          }
+        ]
+      }
+    ]
+  }
+}
