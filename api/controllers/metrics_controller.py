@@ -6,6 +6,26 @@ metrics = MetricsModel()
 class MetricsController:
 
     @staticmethod
+    def record_request(method, route, status, duration):
+        """Record HTTP request metrics"""
+        metrics.record_request(method, route, status, duration)
+
+    @staticmethod
+    def increment_in_progress(method, route):
+        """Increment in-progress requests"""
+        metrics.increment_in_progress(method, route)
+
+    @staticmethod
+    def decrement_in_progress(method, route):
+        """Decrement in-progress requests"""
+        metrics.decrement_in_progress(method, route)
+
+    @staticmethod
+    def record_error(error_type):
+        """Record API error"""
+        metrics.record_error(error_type)
+
+    @staticmethod
     def update(users: int):
         if users < 0:
             raise HTTPException(status_code=400, detail="Users cannot be negative")
