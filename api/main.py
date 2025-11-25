@@ -1,18 +1,18 @@
-from fastapi import FastAPI, Response
-from prometheus_client import CollectorRegistry, Counter, Gauge, generate_latest
+from fastapi import FastAPI
+from controllers.metrics_controller import MetricsController
+from views.metrics_view import MetricsView
 
 app = FastAPI()
-registry = CollectorRegistry()
-
-request_count = Counter("app_requests_total", "Total requests", registry=registry)
-active_users = Gauge("app_active_users", "Active users", registry=registry)
 
 @app.get("/update")
 def update(users: int):
-    request_count.inc()
-    active_users.set(users)
-    return {"ok": True}
+    return MetricsController.update(users)
+
+@app.get("/cpu")
+def cpu(value: float):
+    return MetricsController.cpu(value)
 
 @app.get("/metrics")
 def metrics():
-    return Response(generate_latest(registry), media_type="text/plain")
+    registry = MetricsController.get_registry()
+    return MetricsView.as_prometheus(registry)

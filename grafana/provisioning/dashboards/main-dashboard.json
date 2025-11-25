@@ -1,22 +1,63 @@
 {
   "dashboard": {
-    "title": "Monitoring System",
+    "title": "Monitoring System Dashboard",
     "panels": [
       {
         "id": 1,
         "title": "Active Users",
+        "type": "gauge",
         "targets": [
           {
             "expr": "app_active_users"
           }
-        ]
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 1000,
+            "unit": "users"
+          }
+        }
       },
       {
         "id": 2,
-        "title": "Requests Total",
+        "title": "CPU Usage (%)",
+        "type": "timeseries",
         "targets": [
           {
-            "expr": "app_requests_total"
+            "expr": "app_cpu_usage_percent"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 100,
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Requests Per Minute",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(app_requests_total[1m])"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "req/min"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "All Metrics Table",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "{__name__=~'app_.*'}"
           }
         ]
       }
