@@ -57,24 +57,43 @@ class MetricsModel:
 
     def record_request(self, method, route, status, duration):
         """Record HTTP request metrics"""
-        self.http_requests_total.labels(method=method, route=route, status=status).inc()
-        self.http_request_duration_seconds.labels(method=method, route=route).observe(duration)
+        try:
+            self.http_requests_total.labels(method=method, route=route, status=str(status)).inc()
+            self.http_request_duration_seconds.labels(method=method, route=route).observe(duration)
+        except Exception as e:
+            # Log error but don't fail the request
+            print(f"Error recording request metrics: {e}")
 
     def increment_in_progress(self, method, route):
         """Increment in-progress requests"""
-        self.http_requests_in_progress.labels(method=method, route=route).inc()
+        try:
+            self.http_requests_in_progress.labels(method=method, route=route).inc()
+        except Exception as e:
+            print(f"Error incrementing in-progress metrics: {e}")
 
     def decrement_in_progress(self, method, route):
         """Decrement in-progress requests"""
-        self.http_requests_in_progress.labels(method=method, route=route).dec()
+        try:
+            self.http_requests_in_progress.labels(method=method, route=route).dec()
+        except Exception as e:
+            print(f"Error decrementing in-progress metrics: {e}")
 
     def record_error(self, error_type):
         """Record API error"""
-        self.api_errors_total.labels(error_type=error_type).inc()
+        try:
+            self.api_errors_total.labels(error_type=error_type).inc()
+        except Exception as e:
+            print(f"Error recording error metrics: {e}")
 
     def update_users(self, users: int):
-        self.request_count.inc()
-        self.active_users.set(users)
+        try:
+            self.request_count.inc()
+            self.active_users.set(users)
+        except Exception as e:
+            print(f"Error updating user metrics: {e}")
 
     def update_cpu(self, value: float):
-        self.cpu_usage.set(value)
+        try:
+            self.cpu_usage.set(value)
+        except Exception as e:
+            print(f"Error updating CPU metrics: {e}")

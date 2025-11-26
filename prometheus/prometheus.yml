@@ -4,10 +4,6 @@ global:
   external_labels:
     monitor: 'api-monitoring'
 
-# Retention settings
-retention: 15d
-retention_size: 0
-
 scrape_configs:
   - job_name: "api"
     metrics_path: "/metrics"

@@ -8,6 +8,12 @@ import random
 
 app = FastAPI(title="API Monitoring System")
 
+@app.on_event("startup")
+async def startup_event():
+    """Initialize metrics on startup"""
+    # Initialize metrics registry
+    MetricsController.get_registry()
+
 # Middleware for request metrics
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
@@ -15,31 +21,41 @@ async def metrics_middleware(request: Request, call_next):
     method = request.method
     path = request.url.path
     
-    # Skip metrics endpoint to avoid recursion
-    if path == "/metrics":
+    # Skip metrics and health endpoints to avoid recursion
+    if path in ["/metrics", "/health"]:
         return await call_next(request)
     
-    # Increment in-progress counter
-    MetricsController.increment_in_progress(method, path)
+    # Normalize path for metrics (remove query params)
+    normalized_path = path.split('?')[0]
     
     start_time = time.time()
+    in_progress_incremented = False
+    
     try:
+        # Increment in-progress counter
+        MetricsController.increment_in_progress(method, normalized_path)
+        in_progress_incremented = True
+        
         response = await call_next(request)
         duration = time.time() - start_time
         status = response.status_code
         
         # Record metrics
-        MetricsController.record_request(method, path, status, duration)
+        MetricsController.record_request(method, normalized_path, status, duration)
         
         return response
     except Exception as e:
         duration = time.time() - start_time
+        status = 500
+        
+        # Record error metrics
         MetricsController.record_error(type(e).__name__)
-        MetricsController.record_request(method, path, 500, duration)
+        MetricsController.record_request(method, normalized_path, status, duration)
         raise
     finally:
-        # Decrement in-progress counter
-        MetricsController.decrement_in_progress(method, path)
+        # Always decrement in-progress counter if it was incremented
+        if in_progress_incremented:
+            MetricsController.decrement_in_progress(method, normalized_path)
 
 # Health check endpoint
 @app.get("/health")
@@ -73,10 +89,18 @@ def get_user(user_id: int):
 @app.post("/api/users")
 def create_user(name: str, email: str):
     """Create a new user"""
+    # Input validation
+    if not name or not name.strip():
+        raise HTTPException(status_code=400, detail="Name cannot be empty")
+    if not email or not email.strip():
+        raise HTTPException(status_code=400, detail="Email cannot be empty")
+    if "@" not in email:
+        raise HTTPException(status_code=400, detail="Invalid email format")
+    
     global next_user_id
     user_id = next_user_id
     next_user_id += 1
-    user = {"id": user_id, "name": name, "email": email}
+    user = {"id": user_id, "name": name.strip(), "email": email.strip()}
     users_db[user_id] = user
     return user
 
@@ -85,10 +109,21 @@ def update_user(user_id: int, name: str = None, email: str = None):
     """Update user"""
     if user_id not in users_db:
         raise HTTPException(status_code=404, detail="User not found")
-    if name:
-        users_db[user_id]["name"] = name
-    if email:
-        users_db[user_id]["email"] = email
+    
+    # Validate inputs if provided
+    if name is not None:
+        if not name.strip():
+            raise HTTPException(status_code=400, detail="Name cannot be empty")
+        users_db[user_id]["name"] = name.strip()
+    
+    if email is not None:
+        if not email.strip() or "@" not in email:
+            raise HTTPException(status_code=400, detail="Invalid email format")
+        users_db[user_id]["email"] = email.strip()
+    
+    if name is None and email is None:
+        raise HTTPException(status_code=400, detail="At least one field must be provided")
+    
     return users_db[user_id]
 
 @app.delete("/api/users/{user_id}")
