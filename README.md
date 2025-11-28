@@ -656,7 +656,7 @@ api_errors_total{error_type="HTTPException"} 2.0
    - **Password**: `admin`
 3. Skip password change or set a new one
 
-![Grafana Login](pics/grafana-login.png)
+![Grafana Login](pics\graphana-login.png)
 
 ### 2. Verify Data Source
 
