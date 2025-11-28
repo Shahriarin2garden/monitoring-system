@@ -630,7 +630,7 @@ api_errors_total{error_type="HTTPException"} 2.0
    - `http_requests_in_progress` - Active requests
    - `histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))` - P95 latency
 
-![Prometheus Query](pics/prometheus-query.png)
+![Prometheus Query](pics/prometheus-querypng.png)
 
 ### 4. View Raw Metrics
 
