@@ -602,6 +602,167 @@ api_errors_total{error_type="HTTPException"} 2.0
 ```
 ![Metrics Panel](pics/metrices.png)
 
+## 📊 Step-by-Step Prometheus Setup
+
+### 1. Access Prometheus Web UI
+
+1. Open your browser and navigate to: **http://localhost:9090**
+2. You should see the Prometheus web interface
+
+![Prometheus Home](pics/prometheus-home.png)
+
+### 2. Check Target Status
+
+1. Click on **"Status"** in the top menu
+2. Select **"Targets"** from the dropdown
+3. Verify that the API target shows **"UP"** status
+4. The endpoint should be: `http://api:8000/metrics`
+
+![Prometheus Targets](pics/prometheus-targets.png)
+
+### 3. Explore Metrics
+
+1. Go to **"Graph"** tab (main page)
+2. In the query box, type: `http_requests_total`
+3. Click **"Execute"** to see the metric
+4. Try other queries:
+   - `rate(http_requests_total[5m])` - Request rate
+   - `http_requests_in_progress` - Active requests
+   - `histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))` - P95 latency
+
+![Prometheus Query](pics/prometheus-query.png)
+
+### 4. View Raw Metrics
+
+1. Click on **"Status"** → **"Configuration"**
+2. Verify scrape configuration shows:
+   ```yaml
+   - job_name: api
+     metrics_path: /metrics
+     static_configs:
+     - targets:
+       - api:8000
+   ```
+
+![Prometheus Config](pics/prometheus-config.png)
+
+## 📈 Step-by-Step Grafana Setup
+
+### 1. Access Grafana Web UI
+
+1. Open your browser and navigate to: **http://localhost:3000**
+2. Login with credentials:
+   - **Username**: `admin`
+   - **Password**: `admin`
+3. Skip password change or set a new one
+
+![Grafana Login](pics/grafana-login.png)
+
+### 2. Verify Data Source
+
+1. Click the **gear icon (⚙️)** in the left sidebar
+2. Select **"Data Sources"**
+3. You should see **"Prometheus"** already configured
+4. Click on it to verify:
+   - **URL**: `http://prometheus:9090`
+   - **Access**: Server (default)
+   - Status should show **"Data source is working"**
+
+![Grafana Data Source](pics/grafana-datasource.png)
+
+### 3. Access Pre-built Dashboard
+
+1. Click the **four squares icon** in the left sidebar (Dashboards)
+2. You should see the **"API Monitoring Dashboard"**
+3. Click on it to open
+
+![Grafana Dashboard List](pics/grafana-dashboard-list.png)
+
+### 4. Explore Dashboard Panels
+
+The dashboard contains 8 key panels:
+
+#### Panel 1: Request Rate (5m)
+- Shows requests per second over time
+- Color-coded by HTTP method and route
+
+![Grafana Request Rate](pics/grafana-request-rate.png)
+
+#### Panel 2: Active Requests
+- Real-time gauge of in-progress requests
+- Green (<2), Yellow (2-5), Red (>5)
+
+![Grafana Active Requests](pics/grafana-active-requests.png)
+
+#### Panel 3: Latency Percentiles
+- P50, P95, P99 response times
+- Helps identify performance issues
+
+![Grafana Latency](pics/grafana-latency.png)
+
+#### Panel 4: Error Rate
+- Percentage of failed requests
+- Critical for SLA monitoring
+
+![Grafana Error Rate](pics/grafana-error-rate.png)
+
+### 5. Generate Traffic and Watch Metrics
+
+1. Run the test commands to generate traffic:
+   ```bash
+   curl -X POST "http://localhost:8000/api/users?name=Test&email=test@example.com"
+   curl http://localhost:8000/api/users
+   curl http://localhost:8000/api/slow
+   curl http://localhost:8000/api/error
+   ```
+
+2. Return to Grafana and watch the panels update in real-time
+3. The dashboard refreshes every 5 seconds by default
+
+![Grafana Live Data](pics/grafana-live-data.png)
+
+### 6. Customize Time Range
+
+1. Click the **time picker** in the top-right corner
+2. Select different ranges:
+   - Last 5 minutes
+   - Last 15 minutes
+   - Last 1 hour
+3. Or set a custom range
+
+![Grafana Time Range](pics/grafana-time-range.png)
+
+### 7. Create Custom Queries
+
+1. Click **"Add Panel"** button
+2. Select **"Add a new panel"**
+3. In the query editor, try:
+   - `sum(rate(http_requests_total[5m])) by (status)`
+   - `avg(rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m]))`
+4. Customize visualization type (Graph, Stat, Gauge, etc.)
+
+![Grafana Custom Panel](pics/grafana-custom-panel.png)
+
+## 🔍 Monitoring Workflow
+
+### Complete Monitoring Flow
+
+1. **API generates metrics** → Exposes at `/metrics` endpoint
+2. **Prometheus scrapes** → Every 15 seconds from API
+3. **Grafana queries** → Prometheus for dashboard data
+4. **Real-time visualization** → Updates every 5 seconds
+
+![Monitoring Flow](pics/monitoring-flow.png)
+
+### Key Metrics to Watch
+
+| Metric | What it Shows | Alert Threshold |
+|--------|---------------|----------------|
+| Request Rate | Traffic volume | Sudden spikes/drops |
+| Error Rate | System health | >5% errors |
+| P95 Latency | Performance | >500ms |
+| Active Requests | System load | >10 concurrent |
+
 ## 📊 Success Criteria
 
 Your implementation demonstrates:
