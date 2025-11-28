@@ -556,7 +556,9 @@ Response:
   "email": "john@example.com"
 }
 ```
+### API Call Example
 
+![API Call](pics/api_call.png)
 ### List Users
 ```bash
 curl http://localhost:8000/api/users
@@ -598,6 +600,7 @@ http_requests_in_progress{method="GET",route="/api/users"} 0.0
 # TYPE api_errors_total counter
 api_errors_total{error_type="HTTPException"} 2.0
 ```
+![Metrics Panel](pics/metrices.png)
 
 ## 📊 Success Criteria
 
